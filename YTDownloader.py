@@ -9,23 +9,27 @@ from pathlib import Path
 import re
 from streamlit import rerun
 
-# ==== Logger personalizado para erros do yt_dlp ====
 class MyLogger:
     def debug(self, msg): pass
     def warning(self, msg): pass
     def error(self, msg):
         if '[Errno' in msg or 'ERROR:' in msg:
-            st.error(f"Erro interno: {msg}")
+            st.error(f"❌ Erro interno: {msg}")
 
-# ==== Detectar ffmpeg no sistema ou embutido ====
+
 def get_ffmpeg_path():
     ffmpeg_path = shutil.which("ffmpeg")
     if ffmpeg_path:
         return os.path.dirname(ffmpeg_path)
-    # Caminho relativo para o FFmpeg embutido
-    return os.path.join(os.path.dirname(__file__), "ffmpeg", "bin")
 
-# ==== Hook de progresso com tempo e taxa ====
+    base_path = os.path.dirname(__file__)
+    ffmpeg_embutido = os.path.join(base_path, 'ffmpeg', 'bin', 'ffmpeg')
+    if os.path.isfile(ffmpeg_embutido):
+        return os.path.dirname(ffmpeg_embutido)
+
+    return None
+
+
 def make_progress_hook(progress_bar, status_text):
     def hook(d):
         if d['status'] == 'downloading':
@@ -45,9 +49,9 @@ def make_progress_hook(progress_bar, status_text):
             status_text.text("Finalizando...")
     return hook
 
-# ==== Função principal de download ====
+
 def baixar_e_gerar_arquivo(url, qualidade, apenas_audio, progress_bar, status_text):
-    url = url.strip().split('&')[0]  # Limpa URL
+    url = url.strip().split('&')[0]
     ffmpeg_path = get_ffmpeg_path()
     usar_ffmpeg = ffmpeg_path if ffmpeg_path else None
 
@@ -83,7 +87,7 @@ def baixar_e_gerar_arquivo(url, qualidade, apenas_audio, progress_bar, status_te
         'noplaylist': True,
         'http_chunk_size': 1048576,
         'no_warnings': True,
-        'ffmpeg_location': get_ffmpeg_path()
+        'force_ipv4': True
     }
 
     if usar_ffmpeg:
@@ -98,14 +102,16 @@ def baixar_e_gerar_arquivo(url, qualidade, apenas_audio, progress_bar, status_te
         thumbnail_url = info.get('thumbnail')
         return caminho_final, extensao, nome_arquivo, thumbnail_url
     except Exception as e:
-        st.error(f"❌ Erro no processamento: {e}")
+        if '403' in str(e):
+            st.error("🚫 O vídeo não pôde ser baixado: acesso proibido (HTTP 403). Pode ser restrito, privado ou bloqueado.")
+        else:
+            st.error(f"❌ Erro no processamento: {e}")
         return None, None, None, None
 
-# ==== Interface do Streamlit ====
-st.set_page_config(page_title="YouTube Downloader", page_icon="📅")
-st.title("📥 YouTube Downloader")
 
-# Barra lateral: arquivos em temp
+st.set_page_config(page_title="YouTube Downloader", page_icon="📅")
+st.title("📥 YouTube Downloader (Local + Deploy Ready)")
+
 with st.sidebar:
     st.subheader("📂 Arquivos disponíveis para download")
     temp_dir = tempfile.gettempdir()
@@ -142,7 +148,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.subheader("🔖 Instalar VLC Player")
-    st.markdown("[VLC (Windows 32-bit)](https://get.videolan.org/vlc/3.0.21/win32/vlc-3.0.21-win32.exe)")
+    st.markdown("[Clique aqui para baixar o VLC (Windows 32-bit)](https://get.videolan.org/vlc/3.0.21/win32/vlc-3.0.21-win32.exe)")
 
 url = st.text_input("🔗 Insira a URL do vídeo:")
 qualidade = st.selectbox("🎮 Qualidade desejada:", [
