@@ -22,12 +22,14 @@ def get_ffmpeg_path():
     ffmpeg_global = shutil.which("ffmpeg")
     if ffmpeg_global:
         return os.path.dirname(ffmpeg_global)
-    if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.dirname(__file__)
+
+    # Caso não esteja no PATH, tenta usar ffmpeg/bin/ffmpeg.exe (embutido)
+    base_path = os.path.dirname(__file__)
     ffmpeg_embutido = os.path.join(base_path, 'ffmpeg', 'bin', 'ffmpeg.exe')
-    return os.path.dirname(ffmpeg_embutido) if os.path.isfile(ffmpeg_embutido) else None
+    if os.path.isfile(ffmpeg_embutido):
+        return os.path.dirname(ffmpeg_embutido)
+
+    return None
 
 # ==== Hook de progresso com tempo e taxa ====
 def make_progress_hook(progress_bar, status_text):
