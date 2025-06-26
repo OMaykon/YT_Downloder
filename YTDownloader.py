@@ -106,7 +106,7 @@ def baixar_e_gerar_arquivo(url, qualidade, apenas_audio, progress_bar, status_te
 
 # ==== Interface do Streamlit ====
 st.set_page_config(page_title="YouTube Downloader", page_icon="📅")
-st.title("📥 YouTube Downloader (Local + Deploy Ready)")
+st.title("📥 YouTube Downloader")
 
 # Barra lateral: arquivos em temp
 with st.sidebar:
@@ -145,7 +145,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.subheader("🔖 Instalar VLC Player")
-    st.markdown("[Clique aqui para baixar o VLC (Windows 32-bit)](https://get.videolan.org/vlc/3.0.21/win32/vlc-3.0.21-win32.exe)")
+    st.markdown("[VLC (Windows 32-bit)](https://get.videolan.org/vlc/3.0.21/win32/vlc-3.0.21-win32.exe)")
 
 url = st.text_input("🔗 Insira a URL do vídeo:")
 qualidade = st.selectbox("🎮 Qualidade desejada:", [
